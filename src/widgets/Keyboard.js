@@ -134,27 +134,30 @@ export default class Keyboard extends Composite {
       case 'ABC': this._replaceLayout(GERMAN_LAYOUT); break;
       default:
         this.trigger('input', this, key);
+        this._decapitalize();
     }
   }
 
   _processShiftKey() {
     if (this._shiftPressed) {
-      this._capitalize();
-    } else {
       this._decapitalize();
+    } else {
+      this._capitalize();
     }
   }
 
   _capitalize() {
-    this._toLowerCase();
-    this._layout.find('#shift').first().set('background', '#BDBDBD');
-    this._shiftPressed = false;
-  }
-
-  _decapitalize() {
     this._toUpperCase();
     this._layout.find('#shift').first().set('background', 'white');
     this._shiftPressed = true;
+  }
+
+  _decapitalize() {
+    if (this._shiftPressed) {
+      this._toLowerCase();
+      this._layout.find('#shift').first().set('background', '#BDBDBD');
+      this._shiftPressed = false;
+    }
   }
 
   _toLowerCase() {
