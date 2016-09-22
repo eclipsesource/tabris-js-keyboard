@@ -1,0 +1,47 @@
+{
+  "extends": "eslint:recommended",
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module"
+  },
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "globals": {
+    "cordova": false,
+    "localStorage": false,
+    "fetch": false,
+    "describe": false,
+    "it": false,
+    "before": false,
+    "after": false,
+    "beforeEach": false,
+    "afterEach": false,
+    "navigator": false,
+    "document": false,
+    "Connection": false
+  },
+  "rules": {
+    "no-unused-labels": 1,
+    "no-unused-vars": 1,
+    "no-console": 1,
+    "semi": 1,
+    "eqeqeq": 1,
+    "indent": [1, 2, { "SwitchCase": 1 }],
+    "linebreak-style": [1, "unix"],
+    "no-trailing-spaces": 1,
+    "eol-last": 1,
+    "no-else-return": 1,
+    "no-with": 1,
+    "quotes": [1, "single"],
+    "space-infix-ops": 1,
+    "space-unary-ops": 1,
+    "space-before-blocks": 1,
+    "space-in-parens": [1, "never"],
+    "no-var": 2,
+    "array-bracket-spacing": [1, "never"],
+    "object-curly-spacing": [1, "never"],
+    "max-len": [1, 120, 2, {"ignoreUrls": true, "ignorePattern": "\\/\\^"}]
+  }
+}

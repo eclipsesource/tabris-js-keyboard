@@ -1,0 +1,5 @@
+dist/
+debugtest/
+node_modules/
+.idea
+.project
