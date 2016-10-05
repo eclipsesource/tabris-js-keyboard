@@ -7,15 +7,14 @@ import config from './keyboard-config.json';
 
 const ROW_HEIGHT = 50;
 const ROW_SPACING = 3;
-const DEFAULT_WEIGHT_SUM = 11;
+const DEFAULT_KEYS_LENGTH = 11;
 const ANDROID_NAVIGATION_BAR_HEIGHT = 48;
 const GERMAN_LAYOUT = 'germanLayout';
 const SYMBOLS_LAYOUT = 'symbolsLayout';
 
 export default class Keyboard extends Composite {
   constructor() {
-    super();
-    this.set('layoutData', {left: 0, bottom: 0, right: 0});
+    super({left: 0, bottom: 0, right: 0});
     this._createSubWidgets(GERMAN_LAYOUT);
     device.on('change:orientation', () => this._replaceLayout(this._layout.get('id')));
   }
@@ -30,7 +29,7 @@ export default class Keyboard extends Composite {
 
   _createSubWidgets(id) {
     this._innerWidth = this._getInnerWidth();
-    this._keyWidth = this._calculateKeyWidth(DEFAULT_WEIGHT_SUM);
+    this._keyWidth = this._calculateKeyWidth(DEFAULT_KEYS_LENGTH);
     this._shiftPressed = false;
     this._createLayout(id);
     this._createKeys();
@@ -40,7 +39,8 @@ export default class Keyboard extends Composite {
   _createLayout(id) {
     this._layout = new Composite({
       id: id,
-      layoutData: {left: 0, right: 0},
+      left: 0,
+      right: 0,
       visible: false,
       background: '#E0E0E0'
     }).appendTo(this);
@@ -65,9 +65,13 @@ export default class Keyboard extends Composite {
 
   _createKeys() {
     let layout = config[this._layout.get('id')];
-    this._rowCount = layout.length;
+    let maxKeysLength = 0;
+    this._rowCount = 4;
     for (let i = 0; i < layout.length; i++) {
-      this._calculateKeyWidth(layout[i].weightSum);
+      if (maxKeysLength < layout[i].keys.length) {
+        maxKeysLength = layout[i].keys.length;
+      }
+      this._calculateKeyWidth(maxKeysLength);
       let leftPadding = this._calculateLeftPadding(layout, i);
       this._processKey(layout, i, leftPadding);
     }
@@ -90,11 +94,9 @@ export default class Keyboard extends Composite {
   _createKey(letter, weight, row, column, sumWeight, leftPadding) {
     let textView = new TextView({
       id: 'id_' + letter.toLowerCase().charCodeAt(0),
-      layoutData: {
-        left: sumWeight * this._keyWidth + (column + 1) * ROW_SPACING + leftPadding,
-        top: (ROW_SPACING + ROW_HEIGHT) * row + ROW_SPACING,
-        width: weight * this._keyWidth, height: ROW_HEIGHT
-      },
+      left: this._keyWidth * sumWeight  + (column + 1) * ROW_SPACING + leftPadding,
+      top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
+      width: this._keyWidth * weight, height: ROW_HEIGHT,
       text: letter,
       cornerRadius: 7,
       alignment: 'center',
@@ -107,11 +109,9 @@ export default class Keyboard extends Composite {
   _createOperationalKey(object, row, column, sumWeight, leftPadding) {
     let imageView = new ImageView({
       id: object.id,
-      layoutData: {
-        left: sumWeight * this._keyWidth + (column + 1) * ROW_SPACING + leftPadding,
-        top: (ROW_SPACING + ROW_HEIGHT) * row + ROW_SPACING,
-        width: object.weight * this._keyWidth, height: ROW_HEIGHT
-      },
+      left: this._keyWidth * sumWeight + (column + 1) * ROW_SPACING + leftPadding,
+      top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
+      width: this._keyWidth * object.weight, height: ROW_HEIGHT,
       image: {src: object.image},
       cornerRadius: 7,
       highlightOnTouch: true,
@@ -191,18 +191,16 @@ export default class Keyboard extends Composite {
     return device.get('screenWidth') - ANDROID_NAVIGATION_BAR_HEIGHT;
   }
 
-  _calculateKeyWidth(weightSum) {
-    this._keyWidth = (this._innerWidth - (weightSum + 1) * ROW_SPACING) / weightSum;
+  _calculateKeyWidth(keysLength) {
+    this._keyWidth = (this._innerWidth - (keysLength + 1) * ROW_SPACING) / keysLength;
   }
 
   _createBottomPadding() {
     new Composite({
       id: 'bottomPadding',
       background: '#E0E0E0',
-      layoutData: {
-        left: 0, top: (ROW_SPACING + ROW_HEIGHT) * this._rowCount,
-        height: ROW_SPACING, right: 0
-      }
+      left: 0, top: (ROW_HEIGHT + ROW_SPACING) * this._rowCount,
+      height: ROW_SPACING, right: 0
     }).appendTo(this._layout);
   }
 

@@ -1,7 +1,6 @@
 {
     "germanLayout": [
         {
-            "weightSum": 10,
             "keys": [
                 "1",
                 "2",
@@ -16,7 +15,6 @@
             ]
         },
         {
-            "weightSum": 11,
             "keys": [
                 "q",
                 "w",
@@ -32,7 +30,6 @@
             ]
         },
         {
-            "weightSum": 11,
             "keys": [
                 "a",
                 "s",
@@ -48,7 +45,6 @@
             ]
         },
         {
-            "weightSum": 11,
             "keys": [
                 {
                     "id": "shift",
@@ -76,7 +72,6 @@
     ],
     "symbolsLayout": [
         {
-            "weightSum": 10,
             "keys": [
                 "@",
                 "#",
@@ -91,7 +86,6 @@
             ]
         },
         {
-            "weightSum": 10,
             "keys": [
                 "*",
                 "\"",
@@ -106,7 +100,6 @@
             ]
         },
         {
-            "weightSum": 10,
             "keys": [
                 "·",
                 "^",
@@ -121,7 +114,6 @@
             ]
         },
         {
-            "weightSum": 10,
             "keys": [
                 {
                     "text": "ABC",
