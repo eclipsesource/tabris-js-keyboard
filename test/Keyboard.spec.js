@@ -4,8 +4,9 @@
 
 import * as tabrisMock from './tabris-mock.js';
 import Keyboard from '../src/widgets/Keyboard.js';
+import KeyboardLayout from '../src/widgets/KeyboardLayout.js';
 import {expect, stub, restoreSandbox} from './test';
-import {device, Composite} from 'tabris';
+import {device} from 'tabris';
 
 const GERMAN_LAYOUT = 'germanLayout';
 const SYMBOLS_LAYOUT = 'symbolsLayout';
@@ -37,70 +38,12 @@ describe('Keyboard', () => {
       expect(keyboard).to.be.an.instanceof(Keyboard);
     });
 
-    it('creates layout that instance of Composite', () => {
-      expect(layout).to.be.an.instanceof(Composite);
+    it('creates layout that instance of KeyboardLayout', () => {
+      expect(layout).to.be.an.instanceof(KeyboardLayout);
     });
 
-    it('sets initial layout id ', () => {
+    it('sets initial layout id', () => {
       expect(layout.get('id')).to.equal(GERMAN_LAYOUT);
-    });
-
-    it('sets innerWidth', () => {
-      expect(keyboard._innerWidth).to.equal(443);
-    });
-
-    it('sets keyWidth', () => {
-      expect(keyboard._keyWidth).to.equal(37);
-    });
-
-    it('sets shiftPressed', () => {
-      expect(keyboard._shiftPressed).to.equal(false);
-    });
-
-    it('sets rowCount', () => {
-      expect(keyboard._rowCount).to.equal(4);
-    });
-
-    it('creates composite for bottom padding', () => {
-      let bottomPadding = layout.find('#bottomPadding').first();
-
-      expect(bottomPadding).to.be.an.instanceof(Composite);
-    });
-
-    it('sets left of top left corner key', () => {
-      let topLeftCornerKeyLeft = 3;
-
-      expect(getKey(layout, '1').get('left')).to.equal(topLeftCornerKeyLeft);
-    });
-
-    it('sets left of top right corner key', () => {
-      let rightTopCornerKeyLeft = 399;
-
-      expect(getKey(layout, '0').get('left')).to.equal(rightTopCornerKeyLeft);
-    });
-
-    it('sets left of second row center key', () => {
-      let secondRowCenterLeft = 203;
-      let secondRowCenterTop = 56;
-
-      expect(getKey(layout, 'z').get('left')).to.equal(secondRowCenterLeft);
-      expect(getKey(layout, 'z').get('top')).to.equal(secondRowCenterTop);
-    });
-
-    it('sets left of bottom left corner key', () => {
-      let bottomLeftCornerKeyLeft = 4.5;
-      let bottomLeftCornerKeyTop = 162;
-
-      expect(geOperationalKey(layout,'shift').get('left')).to.equal(bottomLeftCornerKeyLeft);
-      expect(geOperationalKey(layout,'shift').get('top')).to.equal(bottomLeftCornerKeyTop);
-    });
-
-    it('sets left of bottom right corner key', () => {
-      let bottomRightCornerKeyLeft = 392.25;
-      let bottomRightCornerKeyTop = 162;
-
-      expect(geOperationalKey(layout,'remove').get('left')).to.equal(bottomRightCornerKeyLeft);
-      expect(geOperationalKey(layout,'remove').get('top')).to.equal(bottomRightCornerKeyTop);
     });
 
   });
@@ -123,7 +66,7 @@ describe('Keyboard', () => {
 
       for (let i = 0; i < children.length; i++) {
         let key = children[i];
-        if (keyboard._isLetter(key.get('text'))) {
+        if (layout._isLetter(key.get('text'))) {
           key.trigger('tap', key);
           expect(key.get('text')).to.equal(clickedKeyText);
         }
@@ -131,7 +74,7 @@ describe('Keyboard', () => {
     });
 
     it('switches to symbol layout', () => {
-      triggerClickKey(layout, '.?!');
+      triggerObjectKey(layout, 'switch');
 
       expect(layout.get('id')).to.equal(SYMBOLS_LAYOUT);
     });
@@ -145,37 +88,8 @@ describe('Keyboard', () => {
       expect(clickedKeyId).to.equal('remove');
     });
 
-    it('capitalizes letter keys', () => {
-      let children = layout.children('TextView');
-
-      triggerOperationalKey(layout, 'shift');
-
-      for (let i = 0; i < children.length; i++) {
-        let key = children[i];
-        let text = key.get('text');
-        if (keyboard._isLetter(text)) {
-          expect(text).to.equal(text.toUpperCase());
-        }
-      }
-    });
-
-    it('decapitalizes letter keys', () => {
-      let children = layout.children('TextView');
-
-      triggerOperationalKey(layout, 'shift');
-      triggerOperationalKey(layout, 'shift');
-
-      for (let i = 0; i < children.length; i++) {
-        let key = children[i];
-        let text = key.get('text');
-        if (keyboard._isLetter(text)) {
-          expect(text).to.equal(text.toLowerCase());
-        }
-      }
-    });
-
     it('registers listeners for symbol keys', () => {
-      triggerClickKey(layout, '.?!');
+      triggerObjectKey(layout, 'switch');
 
       let clickedKeyText;
       let children = layout.children('TextView');
@@ -184,7 +98,7 @@ describe('Keyboard', () => {
       for (let i = 0; i < children.length; i++) {
         let key = children[i];
         let text = key.get('text');
-        if (keyboard._isLetter(text) && text !== 'ABC') {
+        if (layout._isLetter(text) && text !== 'ABC') {
           key.trigger('tap', key);
           expect(text).to.equal(clickedKeyText);
         }
@@ -192,8 +106,8 @@ describe('Keyboard', () => {
     });
 
     it('switches to german layout', () => {
-      triggerClickKey(layout, '.?!');
-      triggerClickKey(layout, 'ABC');
+      triggerObjectKey(layout, 'switch');
+      triggerObjectKey(layout, 'switch');
 
       expect(layout.get('id')).to.equal(GERMAN_LAYOUT);
     });
@@ -222,16 +136,16 @@ describe('Keyboard', () => {
 
 });
 
-function getKey(layout, text) {
-  return layout.find('#id_' + text.toLowerCase().charCodeAt(0)).first();
+function getObjectKey(layout, id) {
+  return layout.find('#' + id).first();
 }
 
 function geOperationalKey(layout, id) {
   return layout.find('#' + id).first();
 }
 
-function triggerClickKey(_layout, text) {
-  let key = getKey(_layout, text);
+function triggerObjectKey(_layout, id) {
+  let key = getObjectKey(_layout, id);
   key.trigger('tap', key);
   layout = keyboard._layout;
 }
