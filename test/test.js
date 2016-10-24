@@ -16,17 +16,4 @@ function wait(delay) {
   });
 }
 
-export function fakeNetworkInformation() {
-  global.Connection = {
-    WIFI: 'wifi',
-    CELL_2G: '2g',
-    CELL_3G: '3g',
-    CELL_4G: '4g',
-    CELL: 'cellular'
-  };
-  navigator.connection = {
-    type: Connection.WIFI
-  };
-}
-
 export {expect, spy, stub, mock, restoreSandbox, wait};

@@ -107,7 +107,8 @@ export default class KeyboardLayout extends Composite {
       left: this._keyWidth * sumWeight + (column + 1) * ROW_SPACING + leftPadding,
       top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
       width: this._keyWidth * object.weight, height: ROW_HEIGHT,
-      image: {src: object.image},
+      // TODO: find a better method of including images in a module
+      image: {src: 'node_modules/tabris-keyboard/dist/' + object.image},
       cornerRadius: 7,
       highlightOnTouch: true,
       background: object.background ? object.background : DEFAULT_OPERATIONAL_KEY_BACKGROUND

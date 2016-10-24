@@ -3,8 +3,8 @@
  ******************************************************************************/
 
 import * as tabrisMock from './tabris-mock.js';
-import KeyboardLayout from '../src/widgets/KeyboardLayout.js';
-import config from '../src/widgets/keyboard-config.json';
+import KeyboardLayout from '../src/KeyboardLayout.js';
+import config from '../src/keyboard-config.js';
 import {expect, stub, restoreSandbox} from './test';
 import {device, Composite} from 'tabris';
 

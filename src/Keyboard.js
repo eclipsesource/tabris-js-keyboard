@@ -4,7 +4,7 @@
 
 import {Composite, device} from 'tabris';
 import KeyboardLayout from './KeyboardLayout';
-import config from './keyboard-config.json';
+import config from './keyboard-config';
 
 export default class Keyboard extends Composite {
   constructor() {

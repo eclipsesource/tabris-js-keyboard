@@ -1,42 +1,25 @@
 {
-  "name": "tabris-js-keyboard",
+  "name": "tabris-keyboard",
   "version": "0.1.0",
-  "main": "dist/app.js",
-  "private": true,
+  "main": "dist/main.js",
   "scripts": {
+    "lint": "eslint --max-warnings 1 '**/*.js'",
     "test": "cross-env BABEL_ENV=test mocha --compilers js:babel-core/register",
-    "posttest": "eslint --max-warnings 1 **/*.js",
+    "posttest": "npm run lint",
     "build:debugtest": "rm -rf debugtest/ && cross-env BABEL_ENV=test babel --compact false --out-dir debugtest/src src/ && cross-env BABEL_ENV=test babel --compact false --out-dir debugtest/test test/",
-    "build:dev": "rm -rf dist/ && cross-env BABEL_ENV=development babel --compact false --out-dir dist/ src/ && cp src/widgets/*.json dist/widgets",
-    "build:ios": "rm -rf dist/ && cross-env BABEL_ENV=ios babel --compact false --out-dir dist/ src/ && cp src/widgets/*.json dist/widgets",
-    "build:android": "rm -rf dist/ && cross-env BABEL_ENV=android babel --compact false --out-dir dist/ src/ && cp src/widgets/*.json dist/widgets",
-    "start": "http-server -c-1 -d false",
-    "start:dev": "npm run build:dev && npm start",
-    "start:ios": "npm run build:ios && npm start",
-    "start:android": "npm run build:android && npm start"
-  },
-  "dependencies": {
-    "lodash": "^4.13.1",
-    "tabris": "https://tabrisjs.com/downloads/nightly/tabris.tgz"
+    "build": "rm -rf dist/ && rollup --format=cjs --output=dist/bundle.js -- src/main.js && cross-env babel --compact false --out-file dist/main.js dist/bundle.js && rm dist/bundle.js && cp -a images/ dist/"
   },
   "devDependencies": {
     "babel-cli": "^6.8.0",
     "babel-core": "^6.8.0",
-    "babel-plugin-transform-es2015-arrow-functions": "^6.8.0",
-    "babel-plugin-transform-es2015-block-scoping": "^6.8.0",
-    "babel-plugin-transform-es2015-classes": "^6.8.0",
-    "babel-plugin-transform-es2015-destructuring": "^6.9.0",
-    "babel-plugin-transform-es2015-modules-commonjs": "^6.8.0",
-    "babel-plugin-transform-es2015-parameters": "^6.8.0",
-    "babel-plugin-transform-es2015-shorthand-properties": "^6.8.0",
-    "babel-plugin-transform-es2015-spread": "^6.8.0",
-    "babel-plugin-transform-es2015-template-literals": "^6.8.0",
+    "babel-preset-es2015": "^6.8.0",
     "chai": "^3.5.0",
-    "cross-env": "^1.0.8",
-    "eslint": "^2.8.0",
-    "fetch-mock": "^4.5.4",
-    "mocha": "^2.4.5",
+    "cross-env": "^3.1.3",
+    "eslint": "^3.8.1",
+    "mocha": "^3.1.2",
+    "rollup": "^0.36.3",
     "sinon": "^1.17.4",
-    "sinon-chai": "^2.8.0"
+    "sinon-chai": "^2.8.0",
+    "tabris": "^1.10.0"
   }
 }

@@ -99,12 +99,8 @@ function setTabrisDeviceProperty(name, value) {
 }
 
 export function reset() {
-  let storageBackup = localStorage;
   global.tabris._reset();
   initTabris();
-  localStorage = storageBackup;
-  localStorage.clear();
-  delete localStorage._rwtId;
 }
 
 function initTabris() {
