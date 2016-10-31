@@ -2,7 +2,7 @@
   "name": "tabris-keyboard-example",
   "main": "app.js",
   "dependencies": {
-    "tabris": "^1.10.0",
+    "tabris": "https://tabrisjs.com/downloads/nightly-2.x/tabris.tgz",
     "tabris-keyboard": "../"
   }
 }

@@ -2,7 +2,7 @@
 // polyfill installs fetch on self
 global.self = global;
 
-require('tabris');
+import tabris from 'tabris';
 
 class ClientMock {
 
@@ -44,52 +44,52 @@ class ClientMock {
 let clientMock;
 
 export function fakeInput(widget, value) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   clientMock.set(widget.cid, {text: value});
-  global.tabris._notify(widget.cid, 'modify', {text: value});
+  tabris._notify(widget.cid, 'modify', {text: value});
 }
 
 export function fakeBounds(widget, bounds) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   clientMock.set(widget.cid, {bounds: [bounds.left, bounds.top, bounds.width, bounds.height]});
 }
 
 export function fakeRefresh(widget) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   clientMock.set(widget.cid, {refreshIndicator: true});
-  global.tabris._notify(widget.cid, 'refresh');
+  tabris._notify(widget.cid, 'refresh');
 }
 
 export function fakeVersion(version) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   setTabrisDeviceProperty('version', version);
-  global.device.version = version;
 }
 
 export function fakeScaleFactor(scaleFactor) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   setTabrisDeviceProperty('scaleFactor', scaleFactor);
   window.devicePixelRatio = scaleFactor;
 }
 
 export function fakePlatform(platform) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   setTabrisDeviceProperty('platform', platform);
-  global.device.platform = platform;
 }
 
 export function fakeModel(model) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   setTabrisDeviceProperty('model', model);
-  global.device.model = model;
 }
 
 export function fakeScreenSize(width, height) {
-  global.tabris.trigger('flush');
+  tabris.trigger('flush');
   setTabrisDeviceProperty('screenWidth', width);
   setTabrisDeviceProperty('screenHeight', height);
-  global.device.screenWidth = width;
-  global.device.screenHeight = height;
+}
+
+export function fakeOrientation(orientation) {
+  tabris.trigger('flush');
+  setTabrisDeviceProperty('orientation', orientation);
 }
 
 function setTabrisDeviceProperty(name, value) {
@@ -99,23 +99,18 @@ function setTabrisDeviceProperty(name, value) {
 }
 
 export function reset() {
-  global.tabris._reset();
   initTabris();
 }
 
 function initTabris() {
-  for (let key in global.tabris) {
-    if (global.tabris[key] instanceof Object) {
-      delete global.tabris[key]._rwtId;
-    }
-  }
   clientMock = new ClientMock();
-  global.tabris._init(clientMock);
-  global.tabris.ui = global.tabris.create('_UI');
+  tabris._proxies._proxies = {};
+  tabris._init(clientMock);
   fakePlatform('test');
   fakeVersion('1.2.3');
   fakeModel('testmodel');
   fakeScreenSize(400, 700);
+  fakeOrientation('portrait');
   fakeScaleFactor(2);
 }
 

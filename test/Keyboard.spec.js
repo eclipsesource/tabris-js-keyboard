@@ -5,118 +5,94 @@
 import * as tabrisMock from './tabris-mock.js';
 import Keyboard from '../src/Keyboard.js';
 import KeyboardLayout from '../src/KeyboardLayout.js';
-import {expect, stub, restoreSandbox} from './test';
+import {expect, spy, stub, restoreSandbox} from './test';
 import {device} from 'tabris';
 
-const GERMAN_LAYOUT = 'germanLayout';
-const SYMBOLS_LAYOUT = 'symbolsLayout';
+let keyboard;
 
-let keyboard, deviceStub, layout;
+describe('Keyboard', function() {
 
-function fakeDeviceScreen() {
-  deviceStub = stub(device, 'get');
-  deviceStub.withArgs('orientation').returns('portrait');
-  deviceStub.withArgs('screenWidth').returns(443);
-}
-
-describe('Keyboard', () => {
-
-  beforeEach(() => {
+  beforeEach(function() {
     fakeDeviceScreen();
     keyboard = new Keyboard();
-    layout = keyboard._layout;
   });
 
-  afterEach(() => {
+  afterEach(function() {
     tabrisMock.reset();
     restoreSandbox();
   });
 
-  describe('create', () => {
+  describe('constructor', function() {
 
-    it('creates keyboard that instance of Keyboard', () => {
+    it('creates an instance of Keyboard', function() {
       expect(keyboard).to.be.an.instanceof(Keyboard);
     });
 
-    it('creates layout that instance of KeyboardLayout', () => {
+    it('creates an initial keyboard layout', function() {
+      let layout = keyboard.children().first();
       expect(layout).to.be.an.instanceof(KeyboardLayout);
-    });
-
-    it('sets initial layout id', () => {
-      expect(layout.get('id')).to.equal(GERMAN_LAYOUT);
+      expect(layout.children().first().get('text')).to.equal('1');
     });
 
   });
 
-  describe('listeners', () => {
+  describe('input event', function() {
 
-    it('registers orientation listener', () => {
-      let oldLayout = layout;
+    let listener;
 
-      device.trigger('change:orientation', device, 'landscape');
-      let newLayout = keyboard._layout;
-
-      expect(oldLayout).not.equal(newLayout);
+    beforeEach(function() {
+      listener = spy();
+      keyboard.on('input', listener);
     });
 
-    it('registers listeners for letter keys', () => {
-      let clickedKeyText;
-      let children = layout.children('TextView');
-      keyboard.on('input', (keyboard, key) => { clickedKeyText = key; });
+    it('is triggered by letter key', function() {
+      fakeKeyPress(findKeyByText('a'));
 
-      for (let i = 0; i < children.length; i++) {
-        let key = children[i];
-        if (layout._isLetter(key.get('text'))) {
-          key.trigger('tap', key);
-          expect(key.get('text')).to.equal(clickedKeyText);
-        }
-      }
+      expect(listener).to.have.been.calledWith(keyboard, 'a');
     });
 
-    it('switches to symbol layout', () => {
-      triggerObjectKey(layout, 'switch');
+    it('is triggered by numerical key', function() {
+      fakeKeyPress(findKeyByText('1'));
 
-      expect(layout.get('id')).to.equal(SYMBOLS_LAYOUT);
+      expect(listener).to.have.been.calledWith(keyboard, '1');
     });
 
-    it('registers listeners for operational keys', () => {
-      let clickedKeyId;
-      keyboard.on('input', (keyboard, key) => { clickedKeyId = key; });
+    it('is triggered by backspace key', function() {
+      fakeKeyPress(findKey('#remove'));
 
-      triggerOperationalKey(layout, 'remove');
-
-      expect(clickedKeyId).to.equal('remove');
+      expect(listener).to.have.been.calledWith(keyboard, 'remove');
     });
 
-    it('registers listeners for symbol keys', () => {
-      triggerObjectKey(layout, 'switch');
+    it('is not triggered by switch key', function() {
+      fakeKeyPress(findKey('#switch'));
 
-      let clickedKeyText;
-      let children = layout.children('TextView');
-      keyboard.on('input', (keyboard, key) => { clickedKeyText = key; });
-
-      for (let i = 0; i < children.length; i++) {
-        let key = children[i];
-        let text = key.get('text');
-        if (layout._isLetter(text) && text !== 'ABC') {
-          key.trigger('tap', key);
-          expect(text).to.equal(clickedKeyText);
-        }
-      }
-    });
-
-    it('switches to german layout', () => {
-      triggerObjectKey(layout, 'switch');
-      triggerObjectKey(layout, 'switch');
-
-      expect(layout.get('id')).to.equal(GERMAN_LAYOUT);
+      expect(listener).to.not.have.been.called;
     });
 
   });
 
-  describe('show', () => {
+  describe('switch key', function() {
 
-    it('shows keyboard', () => {
+    it('switches to symbol layout', function() {
+      fakeKeyPress(findKey('#switch'));
+
+      expect(findKeyByText('@')).to.be.ok;
+    });
+
+    it('switches back to german layout', function() {
+      fakeKeyPress(findKey('#switch'));
+      fakeKeyPress(findKey('#switch'));
+
+      expect(keyboard.find('.key').first().text).to.equal('1');
+    });
+
+  });
+
+  describe('show', function() {
+
+    it('shows keyboard', function() {
+      let layout = keyboard.children().first();
+
       keyboard.show();
 
       expect(layout.get('visible')).to.equal(true);
@@ -124,9 +100,11 @@ describe('Keyboard', () => {
 
   });
 
-  describe('hide', () => {
+  describe('hide', function() {
 
-    it('hides keyboard', () => {
+    it('hides keyboard', function() {
+      let layout = keyboard.children().first();
+
       keyboard.hide();
 
       expect(layout.get('visible')).to.equal(false);
@@ -136,22 +114,22 @@ describe('Keyboard', () => {
 
 });
 
-function getObjectKey(layout, id) {
-  return layout.find('#' + id).first();
+function fakeDeviceScreen() {
+  let deviceStub = stub(device, 'get');
+  deviceStub.withArgs('orientation').returns('portrait');
+  deviceStub.withArgs('screenWidth').returns(443);
 }
 
-function geOperationalKey(layout, id) {
-  return layout.find('#' + id).first();
+function findKey(selector) {
+  return keyboard.find('.key').filter(selector).first();
 }
 
-function triggerObjectKey(_layout, id) {
-  let key = getObjectKey(_layout, id);
-  key.trigger('tap', key);
-  layout = keyboard._layout;
+function findKeyByText(text) {
+  return keyboard.find('.key').filter(key => key.text === text).first();
 }
 
-function triggerOperationalKey(_layout, id) {
-  let key = geOperationalKey(_layout, id);
-  key.trigger('tap', key);
-  layout = keyboard._layout;
+function fakeKeyPress(key) {
+  if (key) {
+    key.trigger('tap', key);
+  }
 }

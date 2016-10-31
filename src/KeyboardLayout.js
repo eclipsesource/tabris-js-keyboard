@@ -14,20 +14,23 @@ const DEFAULT_OPERATIONAL_KEY_BACKGROUND = '#BDBDBD';
 const DEFAULT_KEY_FONT = '24px';
 
 export default class KeyboardLayout extends Composite {
-  constructor(id, config) {
+
+  constructor(config) {
     super({
-      id: id,
       left: 0,
       right: 0,
       visible: false,
       background: DEFAULT_BACKGROUND
     });
     this._config = config;
-    this._shiftPressed = false;
     this._innerWidth = this._getInnerWidth();
     this._keyWidth = this._calculateKeyWidth(DEFAULT_KEYS_LENGTH);
     this._createKeys();
     this._createBottomPadding();
+  }
+
+  get config() {
+    return this._config;
   }
 
   _calculateLeftPadding(layout, i) {
@@ -51,43 +54,47 @@ export default class KeyboardLayout extends Composite {
       }
       this._calculateKeyWidth(maxKeysLength);
       let leftPadding = this._calculateLeftPadding(layout, i);
-      this._processKey(layout, i, leftPadding);
+      this._createKey(layout, i, leftPadding);
     }
   }
 
-  _processKey(layout, i, leftPadding) {
+  _createKey(layout, row, leftPadding) {
     let sumWeight = 0;
-    for (let j = 0; j < layout[i].keys.length; j++) {
-      let key = layout[i].keys[j];
+    for (let column = 0; column < layout[row].keys.length; column++) {
+      let key = layout[row].keys[column];
       if (typeof key === 'string') {
-        this._createKey(key, 1, i, j, sumWeight, leftPadding);
-        sumWeight += 1;
-      } else if (typeof key === 'object') {
-        this._processObject(key, i, j, sumWeight, leftPadding);
-        sumWeight += key.weight ? key.weight : 1;
+        key = {text: key};
       }
+      if (key.image) {
+        this._createImageKey(key, row, column, sumWeight, leftPadding);
+      } else if (key.text) {
+        this._createTextKey(key, row, column, sumWeight, leftPadding);
+      }
+      sumWeight += key.weight ? key.weight : 1;
     }
   }
 
-  _createKey(letter, weight, row, column, sumWeight, leftPadding) {
-    let textView = new TextView({
-      id: 'id_' + letter.toLowerCase().charCodeAt(0),
-      left: this._keyWidth * sumWeight  + (column + 1) * ROW_SPACING + leftPadding,
+  _createImageKey(object, row, column, sumWeight, leftPadding) {
+    let view = new ImageView({
+      id: object.id,
+      class: 'key',
+      left: this._keyWidth * sumWeight + (column + 1) * ROW_SPACING + leftPadding,
       top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
-      width: this._keyWidth * weight, height: ROW_HEIGHT,
-      text: letter,
+      width: this._keyWidth * object.weight, height: ROW_HEIGHT,
+      // TODO: find a better method of including images in a module
+      image: {src: 'node_modules/tabris-keyboard/dist/' + object.image},
       cornerRadius: 7,
-      alignment: 'center',
       highlightOnTouch: true,
-      font: DEFAULT_KEY_FONT,
-      background: DEFAULT_KEY_BACKGROUND
-    }).on('tap', () => this._processClick(textView, textView.get('text'))).appendTo(this);
+      background: object.background ? object.background : DEFAULT_OPERATIONAL_KEY_BACKGROUND
+    }).on('tap', () => this._processClick(view)).appendTo(this);
+    view._key = object.id;
   }
 
-  _createObjectKey(object, row, column, sumWeight, leftPadding) {
+  _createTextKey(object, row, column, sumWeight, leftPadding) {
     let weight = object.weight ? object.weight : 1;
     let textView = new TextView({
-      id: object.id ? object.id : 'id_' + object.text.toLowerCase().charCodeAt(0),
+      id: object.id,
+      class: 'key',
       left: this._keyWidth * sumWeight  + (column + 1) * ROW_SPACING + leftPadding,
       top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
       width: this._keyWidth * weight, height: ROW_HEIGHT,
@@ -97,45 +104,26 @@ export default class KeyboardLayout extends Composite {
       highlightOnTouch: true,
       font: DEFAULT_KEY_FONT,
       background: object.background ? object.background : DEFAULT_KEY_BACKGROUND
-    }).on('tap', () => this._processClick(textView, textView.get('text'))).appendTo(this);
-    if (object.target) { textView.set('target', object.target); }
-  }
-
-  _createOperationalKey(object, row, column, sumWeight, leftPadding) {
-    let imageView = new ImageView({
-      id: object.id,
-      left: this._keyWidth * sumWeight + (column + 1) * ROW_SPACING + leftPadding,
-      top: (ROW_HEIGHT + ROW_SPACING) * row + ROW_SPACING,
-      width: this._keyWidth * object.weight, height: ROW_HEIGHT,
-      // TODO: find a better method of including images in a module
-      image: {src: 'node_modules/tabris-keyboard/dist/' + object.image},
-      cornerRadius: 7,
-      highlightOnTouch: true,
-      background: object.background ? object.background : DEFAULT_OPERATIONAL_KEY_BACKGROUND
-    }).on('tap', () => this._processClick(imageView, imageView.get('id'))).appendTo(this);
-  }
-
-  _processObject(object, row, column, sumWeight, leftPadding) {
-    if (object.image) {
-      this._createOperationalKey(object, row, column, sumWeight, leftPadding);
-    } else if (object.text) {
-      this._createObjectKey(object, row, column, sumWeight, leftPadding);
+    }).on('tap', () => this._processClick(textView)).appendTo(this);
+    textView._key = object.text;
+    if (object.target) {
+      textView._target = object.target;
     }
   }
 
-  _processClick(key, text) {
-    if (key.get('target')) {
-      this.set('layout', key.get('target'));
-    } else if (text === 'shift') {
-      this._processShiftKey();
+  _processClick(view) {
+    if (view._target) {
+      this.trigger('layout', view._target);
+    } else if (view._key === 'shift') {
+      this._shiftCase();
     } else {
-      this.set('input', text);
+      this.trigger('input', view.text || view._key);
       this._decapitalize();
     }
   }
 
-  _processShiftKey() {
-    if (this._shiftPressed) {
+  _shiftCase() {
+    if (this._isUpperCase) {
       this._decapitalize();
     } else {
       this._capitalize();
@@ -144,47 +132,37 @@ export default class KeyboardLayout extends Composite {
 
   _capitalize() {
     this._toUpperCase();
-    this.find('#shift').first().set('background', DEFAULT_KEY_BACKGROUND);
-    this._shiftPressed = true;
+    this.find('#shift').set('background', DEFAULT_KEY_BACKGROUND);
   }
 
   _decapitalize() {
-    if (this._shiftPressed) {
-      this._toLowerCase();
-      this.find('#shift').first().set('background', DEFAULT_OPERATIONAL_KEY_BACKGROUND);
-      this._shiftPressed = false;
-    }
+    this._toLowerCase();
+    this.find('#shift').set('background', DEFAULT_OPERATIONAL_KEY_BACKGROUND);
   }
 
   _toLowerCase() {
-    let children = this.children();
-    for (let i = 0; i < children.length; i++) {
-      let text = children[i].get('text');
-      if (text && this._isLetter(text)) {
-        children[i].set('text', children[i].get('text').toLowerCase());
+    this.children().forEach(child => {
+      if (child.text && child.text.length === 1) {
+        child.text = child.text.toLowerCase();
       }
-    }
+    });
+    this._isUpperCase = false;
   }
 
   _toUpperCase() {
-    let children = this.children();
-    for (let i = 0; i < children.length; i++) {
-      let text = children[i].get('text');
-      if (text && this._isLetter(text)) {
-        children[i].set('text', children[i].get('text').toUpperCase());
+    this.children().forEach(child => {
+      if (child.text && child.text.length === 1) {
+        child.text = child.text.toUpperCase();
       }
-    }
-  }
-
-  _isLetter(letter) {
-    return letter.toLowerCase() !== letter.toUpperCase();
+    });
+    this._isUpperCase = true;
   }
 
   _getInnerWidth() {
-    if (device.get('orientation').startsWith('portrait') || device.get('platform') === 'iOS') {
-      return device.get('screenWidth');
+    if (device.orientation.startsWith('portrait') || device.platform === 'iOS') {
+      return device.screenWidth;
     }
-    return device.get('screenWidth') - ANDROID_NAVIGATION_BAR_HEIGHT;
+    return device.screenWidth - ANDROID_NAVIGATION_BAR_HEIGHT;
   }
 
   _calculateKeyWidth(keysLength) {

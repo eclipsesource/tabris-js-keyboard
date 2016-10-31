@@ -4,42 +4,44 @@
 
 import {Composite, device} from 'tabris';
 import KeyboardLayout from './KeyboardLayout';
-import config from './keyboard-config';
+import configs from './keyboard-config';
 
 export default class Keyboard extends Composite {
+
   constructor() {
     super({left: 0, bottom: 0, right: 0});
-    this._createKeyboardLayout(this._getInitialLayoutId());
-    device.on('change:orientation', () => this._replaceLayout(this._layout.get('id')));
+    let id = this._getInitialLayoutId();
+    this._createKeyboardLayout(configs[id]);
+    device.on('change:orientation', () => this._replaceLayout(this._layout.config));
   }
 
   show() {
-    this._layout.set('visible', true);
+    this._layout.visible = true;
   }
 
   hide() {
-    this._layout.set('visible', false);
+    this._layout.visible = false;
   }
 
-  _replaceLayout(id) {
+  _replaceLayout(config) {
     this._layout.dispose();
-    this._createKeyboardLayout(id);
-    this._layout.set('visible', true);
+    this._createKeyboardLayout(config);
+    this._layout.visible = true;
   }
 
-  _createKeyboardLayout(id) {
-    this._layout = new KeyboardLayout(id, config[id]).appendTo(this);
-    this._layout.on('change:layout', (layout, id) => this._replaceLayout(id));
-    this._layout.on('change:input', (layout, key) => this.trigger('input', this, key));
+  _createKeyboardLayout(config) {
+    this._layout = new KeyboardLayout(config).appendTo(this);
+    this._layout.on('layout', id => this._replaceLayout(configs[id]));
+    this._layout.on('input', key => this.trigger('input', this, key));
   }
 
   _getInitialLayoutId() {
-    for (let id in config) {
-      if (config[id].initial) {
+    for (let id in configs) {
+      if (configs[id].initial) {
         return id;
       }
     }
-    return Object.keys(config)[0];
+    return Object.keys(configs)[0];
   }
 
 }

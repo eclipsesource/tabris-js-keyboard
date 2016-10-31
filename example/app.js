@@ -1,11 +1,23 @@
-var tabris = require('tabris');
-var Keyboard = require('tabris-keyboard');
+let tabris = require('tabris');
+let Keyboard = require('tabris-keyboard');
 
-var page = new tabris.Page({
-  title: 'Keyboards',
-  topLevel: true
-});
+let text  = '';
 
-var keyboard = new Keyboard().appendTo(page);
+let label = new tabris.TextView({
+  left: 16, top: 16, right: 16
+}).appendTo(tabris.ui.contentView);
+
+let keyboard = new Keyboard({
+}).on('input', (keyboard, key) => processInput(key)).appendTo(tabris.ui.contentView);
+
 keyboard.show();
-page.open();
+processInput('');
+
+function processInput(key) {
+  if (key === 'remove') {
+    text = text.substr(0, text.length - 1);
+  } else {
+    text += key;
+  }
+  label.text = text;
+}
